@@ -1,11 +1,12 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import HTMLResponse
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.database import sessionmanager
 from backend.api.routers.groups import router as groups_router
-
+from backend.utils.templates import templates
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -34,9 +35,12 @@ app.add_middleware(
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
+
+@app.get("/", response_class=HTMLResponse)
+def read_root(req: Request):
+    return templates.TemplateResponse(
+        request=req, name="index.html", context={"request": req}
+    )
 
 
 app.include_router(groups_router)
